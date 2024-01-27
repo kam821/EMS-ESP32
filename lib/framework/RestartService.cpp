@@ -3,13 +3,15 @@
 
 #include "../../src/emsesp_stub.hpp"
 
-using namespace std::placeholders; // for `_1` etc
-
 RestartService::RestartService(AsyncWebServer * server, SecurityManager * securityManager) {
-    server->on(RESTART_SERVICE_PATH, HTTP_POST, securityManager->wrapRequest(std::bind(&RestartService::restart, this, _1), AuthenticationPredicates::IS_ADMIN));
+    server->on(RESTART_SERVICE_PATH,
+               HTTP_POST,
+               securityManager->wrapRequest([this](AsyncWebServerRequest * request) { restart(request); }, AuthenticationPredicates::IS_ADMIN)
+               );
     server->on(PARTITION_SERVICE_PATH,
                HTTP_POST,
-               securityManager->wrapRequest(std::bind(&RestartService::partition, this, _1), AuthenticationPredicates::IS_ADMIN));
+               securityManager->wrapRequest([this](AsyncWebServerRequest * request) { partition(request); }, AuthenticationPredicates::IS_ADMIN)
+               );
 }
 
 void RestartService::restart(AsyncWebServerRequest * request) {
@@ -19,7 +21,7 @@ void RestartService::restart(AsyncWebServerRequest * request) {
 }
 
 void RestartService::partition(AsyncWebServerRequest * request) {
-    const esp_partition_t * factory_partition = esp_partition_find_first(ESP_PARTITION_TYPE_APP, ESP_PARTITION_SUBTYPE_APP_FACTORY, NULL);
+    const esp_partition_t * factory_partition = esp_partition_find_first(ESP_PARTITION_TYPE_APP, ESP_PARTITION_SUBTYPE_APP_FACTORY, nullptr);
     if (factory_partition) {
         esp_ota_set_boot_partition(factory_partition);
         emsesp::EMSESP::system_.store_nvs_values();
@@ -27,7 +29,7 @@ void RestartService::partition(AsyncWebServerRequest * request) {
         request->send(200);
         return;
     }
-    const esp_partition_t * ota_partition = esp_ota_get_next_update_partition(NULL);
+    const esp_partition_t * ota_partition = esp_ota_get_next_update_partition(nullptr);
     if (!ota_partition) {
         request->send(400); // bad request
         return;

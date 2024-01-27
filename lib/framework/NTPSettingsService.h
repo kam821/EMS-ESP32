@@ -4,7 +4,7 @@
 #include <HttpEndpoint.h>
 #include <FSPersistence.h>
 
-#include <time.h>
+#include <ctime>
 #include <esp_sntp.h>
 
 #ifndef FACTORY_NTP_ENABLED
@@ -63,8 +63,8 @@ class NTPSettingsService : public StatefulService<NTPSettings> {
     HttpEndpoint<NTPSettings>   _httpEndpoint;
     FSPersistence<NTPSettings>  _fsPersistence;
     AsyncCallbackJsonWebHandler _timeHandler;
+    bool                        _connected;
 
-    bool connected_ = false;
     void WiFiEvent(WiFiEvent_t event);
     void configureNTP();
     void configureTime(AsyncWebServerRequest * request, JsonVariant json);

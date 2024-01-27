@@ -13,7 +13,7 @@
 
 #define NETWORK_SETTINGS_FILE "/config/networkSettings.json"
 #define NETWORK_SETTINGS_SERVICE_PATH "/rest/networkSettings"
-#define WIFI_RECONNECTION_DELAY 1000 * 3
+#define WIFI_RECONNECTION_DELAY (1000 * 3)
 
 #ifndef FACTORY_WIFI_SSID
 #define FACTORY_WIFI_SSID ""
@@ -84,7 +84,7 @@ class NetworkSettings {
         settings.staticIPConfig = root["static_ip_config"] | false;
         settings.enableIPv6     = root["enableIPv6"] | false;
         settings.bandwidth20    = root["bandwidth20"] | false;
-        settings.tx_power       = root["tx_power"] | 20;
+        settings.tx_power       = static_cast<int8_t>(root["tx_power"] | 20);
         settings.nosleep        = root["nosleep"] | false;
         settings.enableMDNS     = root["enableMDNS"] | true;
         settings.enableCORS     = root["enableCORS"] | false;
@@ -109,7 +109,7 @@ class NetworkSettings {
         if (settings.staticIPConfig && (IPUtils::isNotSet(settings.localIP) || IPUtils::isNotSet(settings.gatewayIP) || IPUtils::isNotSet(settings.subnetMask))) {
             settings.staticIPConfig = false;
         }
-        if (enableCORS != settings.enableCORS || CORSOrigin != settings.CORSOrigin || (ssid != settings.ssid && settings.ssid == "")) {
+        if (enableCORS != settings.enableCORS || CORSOrigin != settings.CORSOrigin || (ssid != settings.ssid && settings.ssid.isEmpty())) {
             return StateUpdateResult::CHANGED_RESTART; // tell WebUI that a restart is needed
         }
 

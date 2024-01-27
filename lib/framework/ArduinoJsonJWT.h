@@ -12,7 +12,7 @@ class ArduinoJsonJWT {
     String _secret;
 
     const String JWT_HEADER      = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9";
-    const int    JWT_HEADER_SIZE = JWT_HEADER.length();
+    const unsigned int JWT_HEADER_SIZE = JWT_HEADER.length();
 
     String sign(String & value);
 
@@ -20,7 +20,7 @@ class ArduinoJsonJWT {
     static String decode(String value);
 
   public:
-    ArduinoJsonJWT(String secret);
+    explicit ArduinoJsonJWT(String secret);
 
     void   setSecret(String secret);
     String getSecret();

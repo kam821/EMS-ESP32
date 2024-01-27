@@ -1,13 +1,23 @@
 #include <NetworkSettingsService.h>
 
-using namespace std::placeholders; // for `_1` etc
+static bool formatBssid(const String& bssid, uint8_t (&mac)[6]) {
+    uint tmp[6];
+    if (bssid.isEmpty() || sscanf(bssid.c_str(), "%X:%X:%X:%X:%X:%X", &tmp[0], &tmp[1], &tmp[2], &tmp[3], &tmp[4], &tmp[5]) != 6) {
+        return false;
+    }
+    for (uint8_t i = 0; i < 6; i++) {
+        mac[i] = static_cast<uint8_t>(tmp[i]);
+    }
+    return true;
+}
 
 NetworkSettingsService::NetworkSettingsService(AsyncWebServer * server, FS * fs, SecurityManager * securityManager)
     : _httpEndpoint(NetworkSettings::read, NetworkSettings::update, this, server, NETWORK_SETTINGS_SERVICE_PATH, securityManager)
     , _fsPersistence(NetworkSettings::read, NetworkSettings::update, this, fs, NETWORK_SETTINGS_FILE)
-    , _lastConnectionAttempt(0) {
-    addUpdateHandler([&](const String & originId) { reconfigureWiFiConnection(); }, false);
-    WiFi.onEvent(std::bind(&NetworkSettingsService::WiFiEvent, this, _1));
+    , _lastConnectionAttempt(0)
+    , _stopping(false) {
+    addUpdateHandler([this](const String & originId) { reconfigureWiFiConnection(); }, false);
+    WiFi.onEvent([this](WiFiEvent_t event, WiFiEventInfo_t) { WiFiEvent(event); });
 }
 
 void NetworkSettingsService::begin() {
@@ -26,7 +36,6 @@ void NetworkSettingsService::begin() {
     // WiFi.setScanMethod(WIFI_ALL_CHANNEL_SCAN);     // default is FAST_SCAN, connect issues in 2.0.14
     // WiFi.setSortMethod(WIFI_CONNECT_AP_BY_SIGNAL); // is default, no need to set
 
-
     _fsPersistence.readFromFS();
     // reconfigureWiFiConnection();
 }
@@ -44,7 +53,7 @@ void NetworkSettingsService::reconfigureWiFiConnection() {
 
 void NetworkSettingsService::loop() {
     unsigned long currentMillis = millis();
-    if (!_lastConnectionAttempt || (uint32_t)(currentMillis - _lastConnectionAttempt) >= WIFI_RECONNECTION_DELAY) {
+    if (!_lastConnectionAttempt || static_cast<uint32_t>(currentMillis - _lastConnectionAttempt) >= WIFI_RECONNECTION_DELAY) {
         _lastConnectionAttempt = currentMillis;
         manageSTA();
     }
@@ -65,34 +74,28 @@ void NetworkSettingsService::manageSTA() {
 
         // www.esp32.com/viewtopic.php?t=12055
         if (_state.bandwidth20) {
-            esp_wifi_set_bandwidth((wifi_interface_t)ESP_IF_WIFI_STA, WIFI_BW_HT20);
+            esp_wifi_set_bandwidth(static_cast<wifi_interface_t>(ESP_IF_WIFI_STA), WIFI_BW_HT20);
         } else {
-            esp_wifi_set_bandwidth((wifi_interface_t)ESP_IF_WIFI_STA, WIFI_BW_HT40);
+            esp_wifi_set_bandwidth(static_cast<wifi_interface_t>(ESP_IF_WIFI_STA), WIFI_BW_HT40);
         }
         if (_state.nosleep) {
             WiFi.setSleep(false); // turn off sleep - WIFI_PS_NONE
         }
         // attempt to connect to the network
-        uint mac[6];
-        if (!_state.bssid.isEmpty() && sscanf(_state.bssid.c_str(), "%X:%X:%X:%X:%X:%X", &mac[0], &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]) == 6) {
-            uint8_t mac1[6];
-            for (uint8_t i = 0; i < 6; i++) {
-                mac1[i] = (uint8_t)mac[i];
-            }
-            WiFi.begin(_state.ssid.c_str(), _state.password.c_str(), 0, mac1);
+        uint8_t bssid[6];
+        if (formatBssid(_state.bssid, bssid)) {
+            WiFi.begin(_state.ssid.c_str(), _state.password.c_str(), 0, bssid);
         } else {
             WiFi.begin(_state.ssid.c_str(), _state.password.c_str());
         }
         // set power after wifi is startet, fixed value for C3_V1
-        if (WiFi.isConnected()) {
 #ifdef BOARD_C3_MINI_V1
-            // v1 needs this value, see https://github.com/emsesp/EMS-ESP32/pull/620#discussion_r993173979
-            WiFi.setTxPower(WIFI_POWER_8_5dBm); // https://www.wemos.cc/en/latest/c3/c3_mini_1_0_0.html#about-wifi
+        // v1 needs this value, see https://github.com/emsesp/EMS-ESP32/pull/620#discussion_r993173979
+        WiFi.setTxPower(WIFI_POWER_8_5dBm); // https://www.wemos.cc/en/latest/c3/c3_mini_1_0_0.html#about-wifi
 #else
-            // esp_wifi_set_max_tx_power(_state.tx_power * 4);
-            WiFi.setTxPower((wifi_power_t)(_state.tx_power * 4));
+        // esp_wifi_set_max_tx_power(_state.tx_power * 4);
+        WiFi.setTxPower(static_cast<wifi_power_t>(_state.tx_power * 4));
 #endif
-        }
     } else { // not connected but STA-mode active => disconnect
         reconfigureWiFiConnection();
     }

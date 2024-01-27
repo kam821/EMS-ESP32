@@ -2,14 +2,12 @@
 
 #include "../../src/emsesp_stub.hpp"
 
-using namespace std::placeholders; // for `_1` etc
-
 OTASettingsService::OTASettingsService(AsyncWebServer * server, FS * fs, SecurityManager * securityManager)
     : _httpEndpoint(OTASettings::read, OTASettings::update, this, server, OTA_SETTINGS_SERVICE_PATH, securityManager)
     , _fsPersistence(OTASettings::read, OTASettings::update, this, fs, OTA_SETTINGS_FILE)
     , _arduinoOTA(nullptr) {
-    WiFi.onEvent(std::bind(&OTASettingsService::WiFiEvent, this, _1, _2));
-    addUpdateHandler([&](const String & originId) { configureArduinoOTA(); }, false);
+    WiFi.onEvent([this](WiFiEvent_t event, WiFiEventInfo_t info) { WiFiEvent(event, info); });
+    addUpdateHandler([this](const String & originId) { configureArduinoOTA(); }, false);
 }
 
 void OTASettingsService::begin() {
@@ -64,7 +62,7 @@ void OTASettingsService::configureArduinoOTA() {
     }
 }
 
-void OTASettingsService::WiFiEvent(WiFiEvent_t event, WiFiEventInfo_t info) {
+void OTASettingsService::WiFiEvent(WiFiEvent_t event, WiFiEventInfo_t) {
     switch (event) {
     case ARDUINO_EVENT_WIFI_STA_GOT_IP:
     case ARDUINO_EVENT_ETH_GOT_IP:

@@ -4,17 +4,18 @@
 
 #include "../../src/emsesp_stub.hpp"
 
-using namespace std::placeholders; // for `_1` etc
-
 static bool is_firmware = false;
 static char md5[33]     = "\0";
 
 UploadFileService::UploadFileService(AsyncWebServer * server, SecurityManager * securityManager)
     : _securityManager(securityManager) {
-    server->on(UPLOAD_FILE_PATH,
-               HTTP_POST,
-               std::bind(&UploadFileService::uploadComplete, this, _1),
-               std::bind(&UploadFileService::handleUpload, this, _1, _2, _3, _4, _5, _6));
+    server->on(
+            UPLOAD_FILE_PATH,
+            HTTP_POST,
+            [this](AsyncWebServerRequest * request) { uploadComplete(request); },
+            [this](AsyncWebServerRequest * request, const String &filename, size_t index, uint8_t *data, size_t len, bool final) {
+                handleUpload(request, filename, index, data, len, final);
+            });
 }
 
 void UploadFileService::handleUpload(AsyncWebServerRequest * request, const String & filename, size_t index, uint8_t * data, size_t len, bool final) {
@@ -29,7 +30,7 @@ void UploadFileService::handleUpload(AsyncWebServerRequest * request, const Stri
     if (!index) {
         // check details of the file, to see if its a valid bin or json file
         std::string fname(filename.c_str());
-        auto        position  = fname.find_last_of(".");
+        auto        position  = fname.find_last_of('.');
         std::string extension = fname.substr(position + 1);
         size_t      fsize     = request->contentLength();
 

@@ -9,8 +9,8 @@ APSettingsService::APSettingsService(AsyncWebServer * server, FS * fs, SecurityM
     , _lastManaged(0)
     , _reconfigureAp(false)
     , _connected(0) {
-    addUpdateHandler([&](const String & originId) { reconfigureAP(); }, false);
-    WiFi.onEvent(std::bind(&APSettingsService::WiFiEvent, this, _1));
+    addUpdateHandler([this](const String & originId) { reconfigureAP(); }, false);
+    WiFi.onEvent([this](WiFiEvent_t event, WiFiEventInfo_t) { WiFiEvent(event); });
 }
 
 void APSettingsService::begin() {
@@ -53,7 +53,7 @@ void APSettingsService::reconfigureAP() {
 
 void APSettingsService::loop() {
     unsigned long currentMillis = uuid::get_uptime();
-    unsigned long manageElapsed = (uint32_t)(currentMillis - _lastManaged);
+    unsigned long manageElapsed = static_cast<uint32_t>(currentMillis - _lastManaged);
     if (manageElapsed >= MANAGE_NETWORK_DELAY) {
         _lastManaged = currentMillis;
         manageAP();
@@ -76,7 +76,7 @@ void APSettingsService::manageAP() {
 
 void APSettingsService::startAP() {
     WiFi.softAPConfig(_state.localIP, _state.gatewayIP, _state.subnetMask);
-    esp_wifi_set_bandwidth((wifi_interface_t)ESP_IF_WIFI_AP, WIFI_BW_HT20);
+    esp_wifi_set_bandwidth(static_cast<wifi_interface_t>(ESP_IF_WIFI_AP), WIFI_BW_HT20);
     WiFi.softAP(_state.ssid.c_str(), _state.password.c_str(), _state.channel, _state.ssidHidden, _state.maxClients);
 #if CONFIG_IDF_TARGET_ESP32C3
     WiFi.setTxPower(WIFI_POWER_8_5dBm); // https://www.wemos.cc/en/latest/c3/c3_mini_1_0_0.html#about-wifi
@@ -108,6 +108,7 @@ void APSettingsService::handleDNS() {
 APNetworkStatus APSettingsService::getAPNetworkStatus() {
     WiFiMode_t currentWiFiMode = WiFi.getMode();
     bool       apActive        = currentWiFiMode == WIFI_AP || currentWiFiMode == WIFI_AP_STA;
+
     if (apActive && _state.provisionMode != AP_MODE_ALWAYS && WiFi.status() == WL_CONNECTED) {
         return APNetworkStatus::LINGERING;
     }

@@ -21,7 +21,7 @@ ESP8266React::ESP8266React(AsyncWebServer * server, FS * fs)
     , _factoryResetService(server, fs, &_securitySettingsService)
     , _systemStatus(server, &_securitySettingsService) {
     // Serve static resources from PROGMEM
-    WWWData::registerRoutes([server, this](const String & uri, const String & contentType, const uint8_t * content, size_t len) {
+    WWWData::registerRoutes([server](const String & uri, const String & contentType, const uint8_t * content, size_t len) {
         ArRequestHandlerFunction requestHandler = [contentType, content, len](AsyncWebServerRequest * request) {
             AsyncWebServerResponse * response = request->beginResponse_P(200, contentType, content, len);
             response->addHeader("Content-Encoding", "gzip");
@@ -48,13 +48,14 @@ ESP8266React::ESP8266React(AsyncWebServer * server, FS * fs)
 
 void ESP8266React::begin() {
     _networkSettingsService.begin();
-    _networkSettingsService.read([&](NetworkSettings & networkSettings) {
+    _networkSettingsService.read([](NetworkSettings & networkSettings) {
+        DefaultHeaders& defaultHeaders = DefaultHeaders::Instance();
         if (networkSettings.enableCORS) {
-            DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", networkSettings.CORSOrigin);
-            DefaultHeaders::Instance().addHeader("Access-Control-Allow-Headers", "Accept, Content-Type, Authorization");
-            DefaultHeaders::Instance().addHeader("Access-Control-Allow-Credentials", "true");
+            defaultHeaders.addHeader("Access-Control-Allow-Origin", networkSettings.CORSOrigin);
+            defaultHeaders.addHeader("Access-Control-Allow-Headers", "Accept, Content-Type, Authorization");
+            defaultHeaders.addHeader("Access-Control-Allow-Credentials", "true");
         }
-        DefaultHeaders::Instance().addHeader("Server", networkSettings.hostname);
+        defaultHeaders.addHeader("Server", networkSettings.hostname);
     });
     _apSettingsService.begin();
     _ntpSettingsService.begin();

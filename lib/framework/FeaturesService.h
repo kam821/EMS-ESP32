@@ -13,7 +13,7 @@
 
 class FeaturesService {
   public:
-    FeaturesService(AsyncWebServer * server);
+    explicit FeaturesService(AsyncWebServer * server);
 
   private:
     void features(AsyncWebServerRequest * request);

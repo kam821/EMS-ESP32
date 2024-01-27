@@ -10,8 +10,6 @@
 
 #define HTTP_ENDPOINT_ORIGIN_ID "http"
 
-using namespace std::placeholders; // for `_1` etc
-
 template <class T>
 class HttpEndpoint {
   protected:
@@ -41,13 +39,12 @@ class HttpEndpoint {
         GEThandler = new AsyncCallbackWebHandler();
         GEThandler->setUri(servicePath);
         GEThandler->setMethod(HTTP_GET);
-        GEThandler->onRequest(securityManager->wrapRequest(std::bind(&HttpEndpoint::fetchSettings, this, _1), authenticationPredicate));
+        GEThandler->onRequest(securityManager->wrapRequest([this](AsyncWebServerRequest * request) { fetchSettings(request); }, authenticationPredicate));
         server->addHandler(GEThandler);
 
         // create the POST
-        POSThandler =
-            new AsyncCallbackJsonWebHandler(servicePath,
-                                            securityManager->wrapCallback(std::bind(&HttpEndpoint::updateSettings, this, _1, _2), authenticationPredicate));
+        POSThandler = new AsyncCallbackJsonWebHandler(servicePath,
+                                                      securityManager->wrapCallback([this](AsyncWebServerRequest * request, JsonVariant json) { updateSettings(request, json); }, authenticationPredicate));
         POSThandler->setMethod(HTTP_POST);
         server->addHandler(POSThandler);
     }
@@ -67,8 +64,8 @@ class HttpEndpoint {
         } else if ((outcome == StateUpdateResult::CHANGED) || (outcome == StateUpdateResult::CHANGED_RESTART)) {
             request->onDisconnect([this]() { _statefulService->callUpdateHandlers(HTTP_ENDPOINT_ORIGIN_ID); });
         }
-        AsyncJsonResponse * response = new AsyncJsonResponse(false);
-        jsonObject                   = response->getRoot().to<JsonObject>();
+        auto * response = new AsyncJsonResponse(false);
+        jsonObject      = response->getRoot().to<JsonObject>();
         _statefulService->read(jsonObject, _stateReader);
         if (outcome == StateUpdateResult::CHANGED_RESTART) {
             response->setCode(205); // reboot required
@@ -79,8 +76,8 @@ class HttpEndpoint {
 
     // for GET
     void fetchSettings(AsyncWebServerRequest * request) {
-        AsyncJsonResponse * response   = new AsyncJsonResponse(false);
-        JsonObject          jsonObject = response->getRoot().to<JsonObject>();
+        auto *      response   = new AsyncJsonResponse(false);
+        JsonObject  jsonObject = response->getRoot().to<JsonObject>();
         _statefulService->read(jsonObject, _stateReader);
 
         response->setLength();

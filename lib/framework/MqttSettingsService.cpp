@@ -2,21 +2,23 @@
 
 #include "../../src/emsesp_stub.hpp"
 
-using namespace std::placeholders; // for `_1` etc
-
 /**
  * Retains a copy of the cstr provided in the pointer provided using dynamic allocation.
  *
  * Frees the pointer before allocation and leaves it as nullptr if cstr == nullptr.
  */
 static char * retainCstr(const char * cstr, char ** ptr) {
+    if (ptr == nullptr || *ptr == nullptr) {
+        return nullptr;
+    }
+
     // free up previously retained value if exists
-    free(*ptr);
+    delete[] *ptr;
     *ptr = nullptr;
 
     // dynamically allocate and copy cstr (if non null)
     if (cstr != nullptr) {
-        *ptr = (char *)malloc(strlen(cstr) + 1);
+        *ptr = new char[strlen(cstr) + 1];
         strcpy(*ptr, cstr);
     }
 
@@ -31,15 +33,22 @@ MqttSettingsService::MqttSettingsService(AsyncWebServer * server, FS * fs, Secur
     , _retainedClientId(nullptr)
     , _retainedUsername(nullptr)
     , _retainedPassword(nullptr)
+    , _retainedRootCA(nullptr)
     , _reconfigureMqtt(false)
     , _disconnectedAt(0)
     , _disconnectReason(espMqttClientTypes::DisconnectReason::TCP_DISCONNECTED)
     , _mqttClient(nullptr) {
-    WiFi.onEvent(std::bind(&MqttSettingsService::WiFiEvent, this, _1, _2));
-    addUpdateHandler([&](const String & originId) { onConfigUpdated(); }, false);
+    WiFi.onEvent([this](WiFiEvent_t event, WiFiEventInfo_t info) { WiFiEvent(event, info); });
+    addUpdateHandler([this](const String & originId) { onConfigUpdated(); }, false);
 }
 
 MqttSettingsService::~MqttSettingsService() {
+    delete _mqttClient;
+    retainCstr(nullptr, &_retainedHost);
+    retainCstr(nullptr, &_retainedClientId);
+    retainCstr(nullptr, &_retainedUsername);
+    retainCstr(nullptr, &_retainedPassword);
+    retainCstr(nullptr, &_retainedRootCA);
 }
 
 void MqttSettingsService::begin() {
@@ -55,32 +64,49 @@ void MqttSettingsService::startClient() {
             return;
         }
         delete _mqttClient;
+        _mqttClient = nullptr;
     }
 #if CONFIG_IDF_TARGET_ESP32S3
     if (_state.enableTLS) {
         isSecure    = true;
-        _mqttClient = static_cast<MqttClient *>(new espMqttClientSecure(espMqttClientTypes::UseInternalTask::NO));
+        _mqttClient = new espMqttClientSecure(espMqttClientTypes::UseInternalTask::NO);
         if (_state.rootCA == "insecure") {
             static_cast<espMqttClientSecure *>(_mqttClient)->setInsecure();
         } else {
             String certificate = "-----BEGIN CERTIFICATE-----\n" + _state.rootCA + "\n-----END CERTIFICATE-----\n";
             static_cast<espMqttClientSecure *>(_mqttClient)->setCACert(retainCstr(certificate.c_str(), &_retainedRootCA));
         }
-        static_cast<espMqttClientSecure *>(_mqttClient)->onConnect(std::bind(&MqttSettingsService::onMqttConnect, this, _1));
-        static_cast<espMqttClientSecure *>(_mqttClient)->onDisconnect(std::bind(&MqttSettingsService::onMqttDisconnect, this, _1));
-        static_cast<espMqttClientSecure *>(_mqttClient)->onMessage(std::bind(&MqttSettingsService::onMqttMessage, this, _1, _2, _3, _4, _5, _6));
+        static_cast<espMqttClientSecure *>(_mqttClient)->onConnect([this](bool sessionPresent) { onMqttConnect(sessionPresent); });
+        static_cast<espMqttClientSecure *>(_mqttClient)->onDisconnect([this](espMqttClientTypes::DisconnectReason reason) { onMqttDisconnect(reason); });
+        static_cast<espMqttClientSecure *>(_mqttClient)->onMessage([this](
+                const espMqttClientTypes::MessageProperties & properties,
+                const char * topic,
+                const uint8_t * payload,
+                size_t len,
+                size_t index,
+                size_t total) {
+            onMqttMessage(properties, topic, payload, len, index, total);
+        });
         return;
     }
 #endif
     isSecure    = false;
-    _mqttClient = static_cast<MqttClient *>(new espMqttClient(espMqttClientTypes::UseInternalTask::NO));
-    static_cast<espMqttClient *>(_mqttClient)->onConnect(std::bind(&MqttSettingsService::onMqttConnect, this, _1));
-    static_cast<espMqttClient *>(_mqttClient)->onDisconnect(std::bind(&MqttSettingsService::onMqttDisconnect, this, _1));
-    static_cast<espMqttClient *>(_mqttClient)->onMessage(std::bind(&MqttSettingsService::onMqttMessage, this, _1, _2, _3, _4, _5, _6));
+    _mqttClient = new espMqttClient(espMqttClientTypes::UseInternalTask::NO);
+    static_cast<espMqttClient *>(_mqttClient)->onConnect([this](bool sessionPresent) { onMqttConnect(sessionPresent); });
+    static_cast<espMqttClient *>(_mqttClient)->onDisconnect([this](espMqttClientTypes::DisconnectReason reason) { onMqttDisconnect(reason); });
+    static_cast<espMqttClient *>(_mqttClient)->onMessage([this](
+            const espMqttClientTypes::MessageProperties & properties,
+            const char * topic,
+            const uint8_t * payload,
+            size_t len,
+            size_t index,
+            size_t total) {
+        onMqttMessage(properties, topic, payload, len, index, total);
+    });
 }
 
 void MqttSettingsService::loop() {
-    if (_reconfigureMqtt || (_disconnectedAt && (uint32_t)(uuid::get_uptime() - _disconnectedAt) >= MQTT_RECONNECTION_DELAY)) {
+    if (_reconfigureMqtt || (_disconnectedAt && static_cast<uint32_t>(uuid::get_uptime() - _disconnectedAt) >= MQTT_RECONNECTION_DELAY)) {
         // reconfigure MQTT client
         _disconnectedAt  = configureMqtt() ? 0 : uuid::get_uptime();
         _reconfigureMqtt = false;
@@ -116,6 +142,7 @@ void MqttSettingsService::onMqttMessage(const espMqttClientTypes::MessagePropert
                                         size_t                                        len,
                                         size_t                                        index,
                                         size_t                                        total) {
+    (void) properties; (void) index; (void) total;
     emsesp::EMSESP::mqtt_.on_message(topic, payload, len);
 }
 
@@ -128,6 +155,7 @@ MqttClient * MqttSettingsService::getMqttClient() {
 }
 
 void MqttSettingsService::onMqttConnect(bool sessionPresent) {
+    (void) sessionPresent;
     // _disconnectedAt = 0;
     emsesp::EMSESP::mqtt_.on_connect();
     // emsesp::EMSESP::logger().info("Connected to MQTT, %s", (sessionPresent) ? ("with persistent session") : ("without persistent session"));
@@ -149,7 +177,7 @@ void MqttSettingsService::onConfigUpdated() {
     emsesp::EMSESP::mqtt_.start(); // reload EMS-ESP MQTT settings
 }
 
-void MqttSettingsService::WiFiEvent(WiFiEvent_t event, WiFiEventInfo_t info) {
+void MqttSettingsService::WiFiEvent(WiFiEvent_t event, WiFiEventInfo_t) {
     switch (event) {
     case ARDUINO_EVENT_WIFI_STA_GOT_IP:
     case ARDUINO_EVENT_ETH_GOT_IP:

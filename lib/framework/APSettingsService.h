@@ -75,7 +75,7 @@ class APSettings {
                && subnetMask == settings.subnetMask;
     }
 
-    static void read(APSettings & settings, JsonObject root) {
+    static void read(const APSettings & settings, JsonObject root) {
         root["provision_mode"] = settings.provisionMode;
         root["ssid"]           = settings.ssid;
         root["password"]       = settings.password;

@@ -1,7 +1,7 @@
 #ifndef NTPStatus_h
 #define NTPStatus_h
 
-#include <time.h>
+#include <ctime>
 
 #include <WiFi.h>
 #include <esp_sntp.h>

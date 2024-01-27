@@ -4,6 +4,9 @@
 .vscode/launch.json
 # .vscode/settings.json
 
+# jetbrains
+.idea
+
 # c++ compiling
 .clang_complete
 .gcc-flags.json
@@ -60,4 +63,3 @@ bw-output/
 # entity dump results
 # dump_entities.csv
 # dump_entities.xls*
-

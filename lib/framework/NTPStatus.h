@@ -1,15 +1,15 @@
 #ifndef NTPStatus_h
 #define NTPStatus_h
 
-#include <ctime>
-
-#include <WiFi.h>
-#include <esp_sntp.h>
+#include "SecurityManager.h"
 
 #include <ArduinoJson.h>
+#include <esp_sntp.h>
 #include <ESPAsyncWebServer.h>
-#include <SecurityManager.h>
 #include <uuid/common.h>
+#include <WiFi.h>
+
+#include <ctime>
 
 // #define MAX_NTP_STATUS_SIZE 1024
 #define NTP_STATUS_SERVICE_PATH "/rest/ntpStatus"

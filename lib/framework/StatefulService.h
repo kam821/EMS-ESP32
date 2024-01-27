@@ -4,10 +4,11 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 
-#include <functional>
-#include <vector>
 #include <freertos/FreeRTOS.h>
 #include <freertos/semphr.h>
+
+#include <functional>
+#include <vector>
 
 enum class StateUpdateResult {
     CHANGED = 0,     // The update changed the state and propagation should take place if required

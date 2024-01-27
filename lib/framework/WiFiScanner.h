@@ -1,12 +1,12 @@
 #ifndef WiFiScanner_h
 #define WiFiScanner_h
 
-#include <WiFi.h>
-#include <AsyncTCP.h>
+#include "SecurityManager.h"
 
 #include <ArduinoJson.h>
+#include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
-#include <SecurityManager.h>
+#include <WiFi.h>
 
 #define SCAN_NETWORKS_SERVICE_PATH "/rest/scanNetworks"
 #define LIST_NETWORKS_SERVICE_PATH "/rest/listNetworks"

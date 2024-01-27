@@ -1,12 +1,12 @@
 #ifndef HttpEndpoint_h
 #define HttpEndpoint_h
 
-#include <functional>
+#include "SecurityManager.h"
+#include "StatefulService.h"
 
 #include <ESPAsyncWebServer.h>
 
-#include <SecurityManager.h>
-#include <StatefulService.h>
+#include <functional>
 
 #define HTTP_ENDPOINT_ORIGIN_ID "http"
 

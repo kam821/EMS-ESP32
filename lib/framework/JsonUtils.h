@@ -1,10 +1,11 @@
 #ifndef JsonUtils_h
 #define JsonUtils_h
 
+#include "IPUtils.h"
+
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include <IPAddress.h>
-#include <IPUtils.h>
 
 class JsonUtils {
   public:

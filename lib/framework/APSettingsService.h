@@ -1,9 +1,9 @@
 #ifndef APSettingsConfig_h
 #define APSettingsConfig_h
 
-#include <HttpEndpoint.h>
-#include <FSPersistence.h>
-#include <JsonUtils.h>
+#include "FSPersistence.h"
+#include "HttpEndpoint.h"
+#include "JsonUtils.h"
 
 #include <DNSServer.h>
 #include <IPAddress.h>

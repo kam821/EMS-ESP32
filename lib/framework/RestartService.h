@@ -1,11 +1,11 @@
 #ifndef RestartService_h
 #define RestartService_h
 
-#include <WiFi.h>
-#include <AsyncTCP.h>
+#include "SecurityManager.h"
 
+#include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
-#include <SecurityManager.h>
+#include <WiFi.h>
 
 #define RESTART_SERVICE_PATH "/rest/restart"
 #define PARTITION_SERVICE_PATH "/rest/partition"

@@ -1,7 +1,7 @@
-#include <RestartService.h>
-#include <esp_ota_ops.h>
-
+#include "RestartService.h"
 #include "../../src/emsesp_stub.hpp"
+
+#include <esp_ota_ops.h>
 
 RestartService::RestartService(AsyncWebServer * server, SecurityManager * securityManager) {
     server->on(RESTART_SERVICE_PATH,

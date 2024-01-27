@@ -1,8 +1,8 @@
 #ifndef OTASettingsService_h
 #define OTASettingsService_h
 
-#include <HttpEndpoint.h>
-#include <FSPersistence.h>
+#include "FSPersistence.h"
+#include "HttpEndpoint.h"
 
 #include <ArduinoOTA.h>
 #include <WiFiUdp.h>

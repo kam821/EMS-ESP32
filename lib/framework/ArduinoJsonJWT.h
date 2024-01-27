@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include <ArduinoJson.h>
+
 #include <libb64/cdecode.h>
 #include <libb64/cencode.h>
 #include <mbedtls/md.h>
@@ -11,7 +12,7 @@ class ArduinoJsonJWT {
   private:
     String _secret;
 
-    const String JWT_HEADER      = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9";
+    const String JWT_HEADER            = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9";
     const unsigned int JWT_HEADER_SIZE = JWT_HEADER.length();
 
     String sign(String & value);

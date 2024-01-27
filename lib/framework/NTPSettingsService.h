@@ -1,11 +1,12 @@
 #ifndef NTPSettingsService_h
 #define NTPSettingsService_h
 
-#include <HttpEndpoint.h>
-#include <FSPersistence.h>
+#include "FSPersistence.h"
+#include "HttpEndpoint.h"
+
+#include <esp_sntp.h>
 
 #include <ctime>
-#include <esp_sntp.h>
 
 #ifndef FACTORY_NTP_ENABLED
 #define FACTORY_NTP_ENABLED true

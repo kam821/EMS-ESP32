@@ -1,8 +1,6 @@
-#include <SecuritySettingsService.h>
+#include "SecuritySettingsService.h"
 
 #if FT_ENABLED(FT_SECURITY)
-
-#include "../../src/emsesp_stub.hpp"
 
 SecuritySettingsService::SecuritySettingsService(AsyncWebServer * server, FS * fs)
     : _httpEndpoint(SecuritySettings::read, SecuritySettings::update, this, server, SECURITY_SETTINGS_PATH, this)
@@ -133,24 +131,33 @@ User ADMIN_USER = User(FACTORY_ADMIN_USERNAME, FACTORY_ADMIN_PASSWORD, true);
 
 SecuritySettingsService::SecuritySettingsService(AsyncWebServer * server, FS * fs)
     : SecurityManager() {
+    (void) server;
+    (void) fs;
 }
 SecuritySettingsService::~SecuritySettingsService() = default;
 
 ArRequestFilterFunction SecuritySettingsService::filterRequest(AuthenticationPredicate predicate) {
-    return [this, predicate](AsyncWebServerRequest * request) { return true; };
+    (void) predicate;
+    return [](AsyncWebServerRequest * request) {
+        (void) request;
+        return true;
+    };
 }
 
 // Return the admin user on all request - disabling security features
 Authentication SecuritySettingsService::authenticateRequest(AsyncWebServerRequest * request) {
+    (void) request;
     return Authentication(ADMIN_USER);
 }
 
 // Return the function unwrapped
 ArRequestHandlerFunction SecuritySettingsService::wrapRequest(ArRequestHandlerFunction onRequest, AuthenticationPredicate predicate) {
+    (void) predicate;
     return onRequest;
 }
 
 ArJsonRequestHandlerFunction SecuritySettingsService::wrapCallback(ArJsonRequestHandlerFunction onRequest, AuthenticationPredicate predicate) {
+    (void) predicate;
     return onRequest;
 }
 

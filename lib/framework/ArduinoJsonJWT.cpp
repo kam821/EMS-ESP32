@@ -31,7 +31,7 @@ String ArduinoJsonJWT::sign(String & payload) {
         mbedtls_md_hmac_finish(&ctx, hmacResult);
         mbedtls_md_free(&ctx);
     }
-    return encode(reinterpret_cast<const char *>(hmacResult), 32);
+    return encode(reinterpret_cast<const char *>(hmacResult), sizeof(hmacResult) / sizeof(hmacResult[0]));
 }
 
 String ArduinoJsonJWT::buildJWT(JsonObject payload) {

@@ -1,7 +1,7 @@
-#include <SystemStatus.h>
-#include <esp_ota_ops.h>
-
+#include "SystemStatus.h"
 #include "../../src/emsesp_stub.hpp"
+
+#include <esp_ota_ops.h>
 
 SystemStatus::SystemStatus(AsyncWebServer * server, SecurityManager * securityManager) {
     server->on(SYSTEM_STATUS_SERVICE_PATH,

@@ -1,4 +1,4 @@
-#include <WiFiScanner.h>
+#include "WiFiScanner.h"
 
 WiFiScanner::WiFiScanner(AsyncWebServer * server, SecurityManager * securityManager) {
     server->on(SCAN_NETWORKS_SERVICE_PATH,

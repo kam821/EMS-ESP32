@@ -1,10 +1,10 @@
 #ifndef SecuritySettingsService_h
 #define SecuritySettingsService_h
 
-#include <Features.h>
-#include <SecurityManager.h>
-#include <HttpEndpoint.h>
-#include <FSPersistence.h>
+#include "Features.h"
+#include "FSPersistence.h"
+#include "HttpEndpoint.h"
+#include "SecurityManager.h"
 
 #ifndef FACTORY_ADMIN_USERNAME
 #define FACTORY_ADMIN_USERNAME "admin"
@@ -67,19 +67,19 @@ class SecuritySettings {
     }
 };
 
-class SecuritySettingsService final : public StatefulService<SecuritySettings>, public SecurityManager {
+class SecuritySettingsService : public StatefulService<SecuritySettings>, public SecurityManager {
   public:
     SecuritySettingsService(AsyncWebServer * server, FS * fs);
 
     void begin();
 
     // Functions to implement SecurityManager
-    Authentication               authenticate(const String & username, const String & password) override;
-    Authentication               authenticateRequest(AsyncWebServerRequest * request) override;
-    String                       generateJWT(const User * user) override;
-    ArRequestFilterFunction      filterRequest(AuthenticationPredicate predicate) override;
-    ArRequestHandlerFunction     wrapRequest(ArRequestHandlerFunction onRequest, AuthenticationPredicate predicate) override;
-    ArJsonRequestHandlerFunction wrapCallback(ArJsonRequestHandlerFunction callback, AuthenticationPredicate predicate) override;
+    Authentication               authenticate(const String & username, const String & password) final;
+    Authentication               authenticateRequest(AsyncWebServerRequest * request) final;
+    String                       generateJWT(const User * user) final;
+    ArRequestFilterFunction      filterRequest(AuthenticationPredicate predicate) final;
+    ArRequestHandlerFunction     wrapRequest(ArRequestHandlerFunction onRequest, AuthenticationPredicate predicate) final;
+    ArJsonRequestHandlerFunction wrapCallback(ArJsonRequestHandlerFunction callback, AuthenticationPredicate predicate) final;
 
   private:
     HttpEndpoint<SecuritySettings>  _httpEndpoint;
@@ -109,10 +109,10 @@ class SecuritySettingsService : public SecurityManager {
     ~SecuritySettingsService();
 
     // minimal set of functions to support framework with security settings disabled
-    Authentication               authenticateRequest(AsyncWebServerRequest * request);
-    ArRequestFilterFunction      filterRequest(AuthenticationPredicate predicate);
-    ArRequestHandlerFunction     wrapRequest(ArRequestHandlerFunction onRequest, AuthenticationPredicate predicate);
-    ArJsonRequestHandlerFunction wrapCallback(ArJsonRequestHandlerFunction onRequest, AuthenticationPredicate predicate);
+    Authentication               authenticateRequest(AsyncWebServerRequest * request) final;
+    ArRequestFilterFunction      filterRequest(AuthenticationPredicate predicate) final;
+    ArRequestHandlerFunction     wrapRequest(ArRequestHandlerFunction onRequest, AuthenticationPredicate predicate) final;
+    ArJsonRequestHandlerFunction wrapCallback(ArJsonRequestHandlerFunction onRequest, AuthenticationPredicate predicate) final;
 };
 
 #endif

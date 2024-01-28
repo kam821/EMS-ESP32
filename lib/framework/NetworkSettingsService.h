@@ -128,8 +128,8 @@ class NetworkSettingsService : public StatefulService<NetworkSettings> {
     HttpEndpoint<NetworkSettings>  _httpEndpoint;
     FSPersistence<NetworkSettings> _fsPersistence;
     unsigned long                  _lastConnectionAttempt;
+    bool                           _stopping;
 
-    bool _stopping;
     void WiFiEvent(WiFiEvent_t event);
 
     void reconfigureWiFiConnection();

@@ -12,14 +12,14 @@
 #define FACTORY_RESET_SERVICE_PATH "/rest/factoryReset"
 
 class FactoryResetService {
-    FS * fs;
-
   public:
     FactoryResetService(AsyncWebServer * server, FS * fs, SecurityManager * securityManager);
 
     void factoryReset();
 
   private:
+    FS * fs;
+
     void handleRequest(AsyncWebServerRequest * request);
 };
 

@@ -14,7 +14,7 @@ class IPUtils {
 
   private:
     static const IPAddress& getNotSetIP() {
-        static IPAddress IP_NOT_SET = IPAddress(INADDR_NONE);
+        static const IPAddress IP_NOT_SET = IPAddress(INADDR_NONE);
         return IP_NOT_SET;
     }
 };

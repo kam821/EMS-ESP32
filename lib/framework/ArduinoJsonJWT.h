@@ -27,7 +27,7 @@ class ArduinoJsonJWT {
     static String decode(String value);
 
     static const String& getJWTHeader() {
-        static String JWT_HEADER = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9";
+        static const String JWT_HEADER = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9";
         return JWT_HEADER;
     }
 };

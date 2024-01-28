@@ -14,6 +14,12 @@ RestartService::RestartService(AsyncWebServer * server, SecurityManager * securi
                );
 }
 
+void RestartService::restartNow() {
+    WiFi.disconnect(true);
+    delay(500);
+    ESP.restart();
+}
+
 void RestartService::restart(AsyncWebServerRequest * request) {
     emsesp::EMSESP::system_.store_nvs_values();
     request->onDisconnect(RestartService::restartNow);

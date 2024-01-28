@@ -29,7 +29,7 @@ void OTASettingsService::configureArduinoOTA() {
 
     if (_state.enabled) {
         _arduinoOTA = new ArduinoOTAClass;
-        _arduinoOTA->setPort(_state.port);
+        _arduinoOTA->setPort(static_cast<uint16_t>(_state.port));
         _arduinoOTA->setPassword(_state.password.c_str());
 
         _arduinoOTA->onStart([]() { emsesp::EMSESP::system_.upload_status(true); });

@@ -141,7 +141,9 @@ void MqttSettingsService::onMqttMessage(const espMqttClientTypes::MessagePropert
                                         size_t                                        len,
                                         size_t                                        index,
                                         size_t                                        total) {
-    (void) properties; (void) index; (void) total;
+    (void) properties;
+    (void) index;
+    (void) total;
     emsesp::EMSESP::mqtt_.on_message(topic, payload, len);
 }
 
@@ -291,32 +293,32 @@ StateUpdateResult MqttSettings::update(JsonObject root, MqttSettings & settings)
 #endif
     newSettings.enabled      = root["enabled"] | FACTORY_MQTT_ENABLED;
     newSettings.host         = root["host"] | FACTORY_MQTT_HOST;
-    newSettings.port         = root["port"] | FACTORY_MQTT_PORT;
+    newSettings.port         = static_cast<uint16_t>(root["port"] | FACTORY_MQTT_PORT);
     newSettings.base         = root["base"] | FACTORY_MQTT_BASE;
     newSettings.username     = root["username"] | FACTORY_MQTT_USERNAME;
     newSettings.password     = root["password"] | FACTORY_MQTT_PASSWORD;
     newSettings.clientId     = root["client_id"] | FACTORY_MQTT_CLIENT_ID;
-    newSettings.keepAlive    = root["keep_alive"] | FACTORY_MQTT_KEEP_ALIVE;
+    newSettings.keepAlive    = static_cast<uint16_t>(root["keep_alive"] | FACTORY_MQTT_KEEP_ALIVE);
     newSettings.cleanSession = root["clean_session"] | FACTORY_MQTT_CLEAN_SESSION;
-    newSettings.mqtt_qos     = root["mqtt_qos"] | EMSESP_DEFAULT_MQTT_QOS;
+    newSettings.mqtt_qos     = static_cast<uint8_t>(root["mqtt_qos"] | EMSESP_DEFAULT_MQTT_QOS);
     newSettings.mqtt_retain  = root["mqtt_retain"] | EMSESP_DEFAULT_MQTT_RETAIN;
 
-    newSettings.publish_time_boiler     = root["publish_time_boiler"] | EMSESP_DEFAULT_PUBLISH_TIME;
-    newSettings.publish_time_thermostat = root["publish_time_thermostat"] | EMSESP_DEFAULT_PUBLISH_TIME;
-    newSettings.publish_time_solar      = root["publish_time_solar"] | EMSESP_DEFAULT_PUBLISH_TIME;
-    newSettings.publish_time_mixer      = root["publish_time_mixer"] | EMSESP_DEFAULT_PUBLISH_TIME;
-    newSettings.publish_time_other      = root["publish_time_other"] | EMSESP_DEFAULT_PUBLISH_TIME;
-    newSettings.publish_time_sensor     = root["publish_time_sensor"] | EMSESP_DEFAULT_PUBLISH_TIME;
-    newSettings.publish_time_heartbeat  = root["publish_time_heartbeat"] | EMSESP_DEFAULT_PUBLISH_HEARTBEAT;
+    newSettings.publish_time_boiler     = static_cast<uint16_t>(root["publish_time_boiler"] | EMSESP_DEFAULT_PUBLISH_TIME);
+    newSettings.publish_time_thermostat = static_cast<uint16_t>(root["publish_time_thermostat"] | EMSESP_DEFAULT_PUBLISH_TIME);
+    newSettings.publish_time_solar      = static_cast<uint16_t>(root["publish_time_solar"] | EMSESP_DEFAULT_PUBLISH_TIME);
+    newSettings.publish_time_mixer      = static_cast<uint16_t>(root["publish_time_mixer"] | EMSESP_DEFAULT_PUBLISH_TIME);
+    newSettings.publish_time_other      = static_cast<uint16_t>(root["publish_time_other"] | EMSESP_DEFAULT_PUBLISH_TIME);
+    newSettings.publish_time_sensor     = static_cast<uint16_t>(root["publish_time_sensor"] | EMSESP_DEFAULT_PUBLISH_TIME);
+    newSettings.publish_time_heartbeat  = static_cast<uint16_t>(root["publish_time_heartbeat"] | EMSESP_DEFAULT_PUBLISH_HEARTBEAT);
 
     newSettings.ha_enabled         = root["ha_enabled"] | EMSESP_DEFAULT_HA_ENABLED;
-    newSettings.nested_format      = root["nested_format"] | EMSESP_DEFAULT_NESTED_FORMAT;
+    newSettings.nested_format      = static_cast<uint8_t>(root["nested_format"] | EMSESP_DEFAULT_NESTED_FORMAT);
     newSettings.discovery_prefix   = root["discovery_prefix"] | EMSESP_DEFAULT_DISCOVERY_PREFIX;
-    newSettings.discovery_type     = root["discovery_type"] | EMSESP_DEFAULT_DISCOVERY_TYPE;
+    newSettings.discovery_type     = static_cast<uint8_t>(root["discovery_type"] | EMSESP_DEFAULT_DISCOVERY_TYPE);
     newSettings.publish_single     = root["publish_single"] | EMSESP_DEFAULT_PUBLISH_SINGLE;
     newSettings.publish_single2cmd = root["publish_single2cmd"] | EMSESP_DEFAULT_PUBLISH_SINGLE2CMD;
     newSettings.send_response      = root["send_response"] | EMSESP_DEFAULT_SEND_RESPONSE;
-    newSettings.entity_format      = root["entity_format"] | EMSESP_DEFAULT_ENTITY_FORMAT;
+    newSettings.entity_format      = static_cast<uint8_t>(root["entity_format"] | EMSESP_DEFAULT_ENTITY_FORMAT);
 
     if (newSettings.enabled != settings.enabled) {
         changed = true;

@@ -48,8 +48,8 @@ class FSPersistence {
         // make directories if required, for new IDF4.2 & LittleFS
         String path(_filePath);
         int    index = 0;
-        while ((index = path.indexOf('/', index + 1)) != -1) {
-            String segment = path.substring(0, index);
+        while ((index = path.indexOf('/', static_cast<unsigned int>(index) + 1)) != -1) {
+            String segment = path.substring(0, static_cast<unsigned int>(index));
             if (!_fs->exists(segment)) {
                 _fs->mkdir(segment);
             }

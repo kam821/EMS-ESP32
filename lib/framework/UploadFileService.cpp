@@ -6,7 +6,7 @@
 static String getFilenameExtension(const String & filename) {
     const auto pos = filename.lastIndexOf('.');
     if (pos != -1) {
-        return filename.substring(pos + 1);
+        return filename.substring(static_cast<unsigned int>(pos) + 1);
     }
     return {};
 }

@@ -21,12 +21,12 @@ void WiFiScanner::scanNetworks(AsyncWebServerRequest * request) {
 }
 
 void WiFiScanner::listNetworks(AsyncWebServerRequest * request) {
-    int numNetworks = WiFi.scanComplete();
+    const int numNetworks = WiFi.scanComplete();
     if (numNetworks > -1) {
         auto *     response = new AsyncJsonResponse(false);
         JsonObject root     = response->getRoot();
         JsonArray  networks = root["networks"].to<JsonArray>();
-        for (int i = 0; i < numNetworks; i++) {
+        for (uint8_t i = 0; i < numNetworks; i++) {
             JsonObject network         = networks.add<JsonObject>();
             network["rssi"]            = WiFi.RSSI(i);
             network["ssid"]            = WiFi.SSID(i);

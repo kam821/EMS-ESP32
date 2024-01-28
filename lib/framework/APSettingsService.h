@@ -89,7 +89,7 @@ class APSettings {
 
     static StateUpdateResult update(JsonObject root, APSettings & settings) {
         APSettings newSettings    = {};
-        newSettings.provisionMode = root["provision_mode"] | FACTORY_AP_PROVISION_MODE;
+        newSettings.provisionMode = static_cast<uint8_t>(root["provision_mode"] | FACTORY_AP_PROVISION_MODE);
         switch (settings.provisionMode) {
         case AP_MODE_ALWAYS:
         case AP_MODE_DISCONNECTED:
@@ -100,9 +100,9 @@ class APSettings {
         }
         newSettings.ssid       = root["ssid"] | FACTORY_AP_SSID;
         newSettings.password   = root["password"] | FACTORY_AP_PASSWORD;
-        newSettings.channel    = root["channel"] | FACTORY_AP_CHANNEL;
+        newSettings.channel    = static_cast<uint8_t>(root["channel"] | FACTORY_AP_CHANNEL);
         newSettings.ssidHidden = root["ssid_hidden"] | FACTORY_AP_SSID_HIDDEN;
-        newSettings.maxClients = root["max_clients"] | FACTORY_AP_MAX_CLIENTS;
+        newSettings.maxClients = static_cast<uint8_t>(root["max_clients"] | FACTORY_AP_MAX_CLIENTS);
 
         JsonUtils::readIP(root, "local_ip", newSettings.localIP, FACTORY_AP_LOCAL_IP);
         JsonUtils::readIP(root, "gateway_ip", newSettings.gatewayIP, FACTORY_AP_GATEWAY_IP);

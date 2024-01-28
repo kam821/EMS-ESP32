@@ -1,6 +1,8 @@
 #include "NTPStatus.h"
 #include "../../src/emsesp_stub.hpp"
 
+#include <array>
+
 NTPStatus::NTPStatus(AsyncWebServer * server, SecurityManager * securityManager) {
     server->on(NTP_STATUS_SERVICE_PATH,
                HTTP_GET,
@@ -14,9 +16,9 @@ NTPStatus::NTPStatus(AsyncWebServer * server, SecurityManager * securityManager)
  * Uses a 25 byte buffer, large enough to fit an ISO time string with offset.
  */
 String formatTime(tm * time, const char * format) {
-    char time_string[25];
-    strftime(time_string, sizeof(time_string) / sizeof(time_string[0]), format, time);
-    return {time_string};
+    std::array<char, 25> time_string{};
+    strftime(time_string.data(), time_string.size(), format, time);
+    return {time_string.data()};
 }
 
 String toUTCTimeString(tm * time) {
